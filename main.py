@@ -19,7 +19,7 @@ class TodoCreate(TodoBase):
     pass
 
 class Todo(TodoBase):
-    pass
+    todo_id: int = Field(..., description="Unique identifier for the todo item")
 
 class TodoUpdate(BaseModel):
     todo_name: Optional[str] = Field(None, min_length=3, max_length=512, description="Name of the todo item")
@@ -27,15 +27,14 @@ class TodoUpdate(BaseModel):
     priority: Optional[PriorityLevel] = Field(None, description="Priority level of the todo item")
 
 all_todos = [
-    {"todo_id": 1, "todo_name": "Buy groceries", "todo_description": "Milk, Bread, Eggs"},
-    {"todo_id": 2, "todo_name": "Walk the dog", "todo_description": "Evening walk in the park"},
-    {"todo_id": 3, "todo_name": "Read a book", "todo_description": "Finish reading '1984'"},
-    {"todo_id": 4, "todo_name": "Exercise", "todo_description": "30 minutes of cardio"},
-    {"todo_id": 5, "todo_name": "Call mom", "todo_description": "Catch up with family"}
+    Todo(todo_id=1, todo_name="Buy groceries", todo_description="Milk, Bread, Eggs", priority=PriorityLevel.MEDIUM),
+    Todo(todo_id=2, todo_name="Walk the dog", todo_description="Evening walk in the park", priority=PriorityLevel.LOW),
+    Todo(todo_id=3, todo_name="Read a book", todo_description="Finish reading '1984'", priority=PriorityLevel.LOW),
+    Todo(todo_id=4, todo_name="Exercise", todo_description="30 minutes of cardio", priority=PriorityLevel.HIGH),
+    Todo(todo_id=5, todo_name="Call mom", todo_description="Catch up with family", priority=PriorityLevel.MEDIUM)
 ]
 
 # GET, POST, PUT, DELETE
-
 @api.get("/")
 def index():
     return {"message": "Hello, World!"}
@@ -45,44 +44,45 @@ def calculation():
     pass
     return {"message": "This is the calculation endpoint."}
 
-@api.get("/todos/{todo_id}")
+@api.get("/todos/{todo_id}", response_model=Todo)
 def get_todo(todo_id: int):
     for todo in all_todos:
-        if todo["todo_id"] == todo_id:
+        if todo.todo_id == todo_id:
             return {"restult": todo}
     return {"error": "Todo not found."}
 
-@api.get("/todos")
+@api.get("/todos", response_model=List[Todo])
 def get_all_todos(first_n: int =  None):
     if(first_n):
         return {"result": all_todos[:first_n]}
     return {"result": all_todos}
 
-@api.post("/todos")
-def create_todo(todo: dict):
+@api.post("/todos", response_model=Todo)
+def create_todo(todo: TodoCreate):
     new_todo_id = len(all_todos) + 1
-    new_todo = {
-        "todo_id": new_todo_id,
-        "todo_name": todo["todo_name"],
-        "todo_description": todo["todo_description"]
-    }
+    new_todo = Todo( 
+        todo_id= new_todo_id,
+        todo_name= todo.todo_name,
+        todo_description= todo.todo_description,
+        priority= todo.priority)
     all_todos.append(new_todo)
     return {"message": "Todo created successfully.", "todo": new_todo}
 
 
-@api.put("/todos/{todo_id}")
-def update_todo(todo_id: int, updated_todo: dict):
+@api.put("/todos/{todo_id}", response_model=Todo)
+def update_todo(todo_id: int, updated_todo: TodoUpdate):
     for todo in all_todos:
-        if todo["todo_id"]== todo_id:
-            todo["todo_name"] = updated_todo["todo_name"]
-            todo["todo_description"] = updated_todo["todo_description"]
+        if todo.todo_id == todo_id:
+            todo.todo_name = updated_todo.todo_name
+            todo.todo_description = updated_todo.todo_description
+            todo.priority = updated_todo.priority
             return {"message": "Todo updated successfully.", "todo": todo}
     return {"error": "Todo not found."}
 
-@api.delete("/todos/{todo_id}")
+@api.delete("/todos/{todo_id}", response_model=Todo)
 def delete_todo(todo_id: int):
     for todo in all_todos:
-        if todo["todo_id"] == todo_id:
+        if todo.todo_id == todo_id:
             all_todos.remove(todo)
             return {"message": "Todo deleted successfully.", "todo": todo}
     return {"error": "Todo not found."}
