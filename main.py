@@ -1,12 +1,30 @@
+from typing import Optional, List
+from enum import IntEnum
 from fastapi import FastAPI
+from pydantic import BaseModel, Field
 
 api = FastAPI()
 
-# GET, POST, PUT, DELETE
+class PriorityLevel(IntEnum):
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
-@api.get("/")
-def index():
-    return {"message": "Hello, World!"}
+class TodoBase(BaseModel):
+    todo_name: str = Field(..., min_length=3, max_length=512, description="Name of the todo item")
+    todo_description: str = Field(..., max_length=1024, description="Description of the todo item")
+    priority: PriorityLevel = Field(default=PriorityLevel.LOW, description="Priority level of the todo item")
+
+class TodoCreate(TodoBase):
+    pass
+
+class Todo(TodoBase):
+    pass
+
+class TodoUpdate(BaseModel):
+    todo_name: Optional[str] = Field(None, min_length=3, max_length=512, description="Name of the todo item")
+    todo_description: Optional[str] = Field(None, max_length=1024, description="Description of the todo item")
+    priority: Optional[PriorityLevel] = Field(None, description="Priority level of the todo item")
 
 all_todos = [
     {"todo_id": 1, "todo_name": "Buy groceries", "todo_description": "Milk, Bread, Eggs"},
@@ -15,6 +33,12 @@ all_todos = [
     {"todo_id": 4, "todo_name": "Exercise", "todo_description": "30 minutes of cardio"},
     {"todo_id": 5, "todo_name": "Call mom", "todo_description": "Catch up with family"}
 ]
+
+# GET, POST, PUT, DELETE
+
+@api.get("/")
+def index():
+    return {"message": "Hello, World!"}
 
 @api.get("/calculation")
 def calculation():
