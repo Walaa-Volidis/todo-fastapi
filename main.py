@@ -54,3 +54,11 @@ def update_todo(todo_id: int, updated_todo: dict):
             todo["todo_description"] = updated_todo["todo_description"]
             return {"message": "Todo updated successfully.", "todo": todo}
     return {"error": "Todo not found."}
+
+@api.delete("/todos/{todo_id}")
+def delete_todo(todo_id: int):
+    for todo in all_todos:
+        if todo["todo_id"] == todo_id:
+            all_todos.remove(todo)
+            return {"message": "Todo deleted successfully.", "todo": todo}
+    return {"error": "Todo not found."}
