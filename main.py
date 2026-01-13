@@ -73,9 +73,12 @@ def create_todo(todo: TodoCreate):
 def update_todo(todo_id: int, updated_todo: TodoUpdate):
     for todo in all_todos:
         if todo.todo_id == todo_id:
-            todo.todo_name = updated_todo.todo_name
-            todo.todo_description = updated_todo.todo_description
-            todo.priority = updated_todo.priority
+            if updated_todo.todo_name is not None:
+                todo.todo_name = updated_todo.todo_name
+            if updated_todo.todo_description is not None:
+                todo.todo_description = updated_todo.todo_description
+            if updated_todo.priority is not None:
+                todo.priority = updated_todo.priority
             return {"message": "Todo updated successfully.", "todo": todo}
     raise HTTPException(status_code=404, detail="Todo not found.")
 
